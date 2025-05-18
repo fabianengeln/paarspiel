@@ -18,6 +18,8 @@ app.config['SESSION_COOKIE_SECURE'] = True  # Only send cookie over HTTPS
 app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent JavaScript access to session cookie
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # Protect against CSRF
 app.config['SESSION_REFRESH_EACH_REQUEST'] = True  # Refresh session on each request
+app.config['SESSION_USE_SIGNER'] = True  # Sign the session cookie
+app.config['SESSION_COOKIE_NAME'] = 'paarspiel_session'  # Custom session cookie name
 
 # Ensure session directory exists
 os.makedirs(app.config['SESSION_FILE_DIR'], exist_ok=True)
@@ -336,6 +338,9 @@ def switch_turn():
         next_turn = person2 if current_turn == person1 else person1
         
         # Update session
+        session.clear()  # Clear existing session data
+        session['person1'] = person1
+        session['person2'] = person2
         session['current_turn'] = next_turn
         session.modified = True  # Explicitly mark session as modified
         
