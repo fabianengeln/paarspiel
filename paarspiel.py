@@ -14,6 +14,9 @@ app.config['SESSION_TYPE'] = 'filesystem'
 app.config['SESSION_FILE_DIR'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'flask_session')
 app.config['SESSION_PERMANENT'] = True
 app.config['PERMANENT_SESSION_LIFETIME'] = 1800  # 30 minutes
+app.config['SESSION_COOKIE_SECURE'] = True  # Only send cookie over HTTPS
+app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent JavaScript access to session cookie
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # Protect against CSRF
 
 # Ensure session directory exists
 os.makedirs(app.config['SESSION_FILE_DIR'], exist_ok=True)
@@ -305,65 +308,34 @@ def save_answer():
 
 @app.route('/switch_turn', methods=['POST'])
 def switch_turn():
-    try:
-        # Debug: Print all session data
-        print("\n=== Switch Turn Request ===")
-        print("Full session data:", dict(session))
-        print("Session type:", type(session))
-        print("Session ID:", session.sid if hasattr(session, 'sid') else "No session ID")
-        
-        # Get current players from session
-        person1 = session.get('person1')
-        person2 = session.get('person2')
-        current_turn = session.get('current_turn')
-        
-        print(f"Current session state:")
-        print(f"person1: {person1}")
-        print(f"person2: {person2}")
-        print(f"current_turn: {current_turn}")
-        
-        # Validate session data
-        if not person1 or not person2 or not current_turn:
-            print("Missing session data in switch_turn")
-            return jsonify({
-                'status': 'error',
-                'message': 'Session data incomplete. Please restart the game.'
-            }), 400
-        
-        # Verify current_turn is valid
-        if current_turn not in [person1, person2]:
-            print("Invalid current_turn value")
-            return jsonify({
-                'status': 'error',
-                'message': 'Invalid turn state. Please restart the game.'
-            }), 400
-        
-        # Switch turns
-        new_turn = person2 if current_turn == person1 else person1
-        session['current_turn'] = new_turn
-        
-        # Force session update
-        session.modified = True
-        
-        print(f"Turn switched to: {new_turn}")
-        print("Updated session data:", dict(session))
-        print("========================\n")
-        
-        return jsonify({
-            'status': 'success',
-            'current_turn': new_turn,
-            'person1': person1,
-            'person2': person2
-        })
-    except Exception as e:
-        print(f"Error in switch_turn: {str(e)}")
-        import traceback
-        print("Full traceback:")
-        print(traceback.format_exc())
-        return jsonify({
-            'status': 'error',
-            'message': 'Internal server error. Please try again.'
-        }), 500
+    print("\n=== Switch Turn Request ===")
+    print("Full session data:", dict(session))
+    print("Session type:", type(session))
+    print("Session ID:", session.sid if hasattr(session, 'sid') else "No session ID")
+    print("Current session state:")
+    print("person1:", session.get('person1'))
+    print("person2:", session.get('person2'))
+    print("current_turn:", session.get('current_turn'))
+    
+    if not session.get('person1') or not session.get('person2') or not session.get('current_turn'):
+        return jsonify({'error': 'Session data missing'}), 400
+    
+    current_turn = session.get('current_turn')
+    person1 = session.get('person1')
+    person2 = session.get('person2')
+    
+    # Determine next turn
+    next_turn = person2 if current_turn == person1 else person1
+    
+    # Update session
+    session['current_turn'] = next_turn
+    session.modified = True  # Explicitly mark session as modified
+    
+    print("Turn switched to:", next_turn)
+    print("Updated session data:", dict(session))
+    print("========================\n")
+    
+    return jsonify({'success': True, 'current_turn': next_turn})
 
 @app.route('/summary')
 def summary():
