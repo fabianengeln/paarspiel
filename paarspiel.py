@@ -17,6 +17,7 @@ app.config['PERMANENT_SESSION_LIFETIME'] = 1800  # 30 minutes
 app.config['SESSION_COOKIE_SECURE'] = True  # Only send cookie over HTTPS
 app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent JavaScript access to session cookie
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # Protect against CSRF
+app.config['SESSION_REFRESH_EACH_REQUEST'] = True  # Refresh session on each request
 
 # Ensure session directory exists
 os.makedirs(app.config['SESSION_FILE_DIR'], exist_ok=True)
@@ -178,6 +179,9 @@ def before_request():
         if not session.get('person1') or not session.get('person2') or not session.get('current_turn'):
             print("No session data found, redirecting to home")
             return redirect(url_for('home'))
+    
+    # Force session update
+    session.modified = True
 
 @app.route('/')
 def home():
@@ -222,6 +226,9 @@ def game():
             return redirect(url_for('home'))
             
         print(f"Game route session data: {session}")  # Debug log
+        
+        # Force session update
+        session.modified = True
         
         return render_template('index.html', 
                              person1=session['person1'], 
@@ -308,34 +315,43 @@ def save_answer():
 
 @app.route('/switch_turn', methods=['POST'])
 def switch_turn():
-    print("\n=== Switch Turn Request ===")
-    print("Full session data:", dict(session))
-    print("Session type:", type(session))
-    print("Session ID:", session.sid if hasattr(session, 'sid') else "No session ID")
-    print("Current session state:")
-    print("person1:", session.get('person1'))
-    print("person2:", session.get('person2'))
-    print("current_turn:", session.get('current_turn'))
-    
-    if not session.get('person1') or not session.get('person2') or not session.get('current_turn'):
-        return jsonify({'error': 'Session data missing'}), 400
-    
-    current_turn = session.get('current_turn')
-    person1 = session.get('person1')
-    person2 = session.get('person2')
-    
-    # Determine next turn
-    next_turn = person2 if current_turn == person1 else person1
-    
-    # Update session
-    session['current_turn'] = next_turn
-    session.modified = True  # Explicitly mark session as modified
-    
-    print("Turn switched to:", next_turn)
-    print("Updated session data:", dict(session))
-    print("========================\n")
-    
-    return jsonify({'success': True, 'current_turn': next_turn})
+    try:
+        print("\n=== Switch Turn Request ===")
+        print("Full session data:", dict(session))
+        print("Session type:", type(session))
+        print("Session ID:", session.sid if hasattr(session, 'sid') else "No session ID")
+        print("Current session state:")
+        print("person1:", session.get('person1'))
+        print("person2:", session.get('person2'))
+        print("current_turn:", session.get('current_turn'))
+        
+        if not session.get('person1') or not session.get('person2') or not session.get('current_turn'):
+            return jsonify({'error': 'Session data missing'}), 400
+        
+        current_turn = session.get('current_turn')
+        person1 = session.get('person1')
+        person2 = session.get('person2')
+        
+        # Determine next turn
+        next_turn = person2 if current_turn == person1 else person1
+        
+        # Update session
+        session['current_turn'] = next_turn
+        session.modified = True  # Explicitly mark session as modified
+        
+        print("Turn switched to:", next_turn)
+        print("Updated session data:", dict(session))
+        print("========================\n")
+        
+        return jsonify({
+            'success': True, 
+            'current_turn': next_turn,
+            'person1': person1,
+            'person2': person2
+        })
+    except Exception as e:
+        print(f"Error in switch_turn: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/summary')
 def summary():
