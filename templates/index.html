@@ -330,6 +330,7 @@
         let currentContentType = null;
         let isSpinning = false;
         let hasSpun = false;
+        let isSwitchingTurn = false;  // Flag to prevent double requests
 
         // Load categories when the page loads
         window.onload = async function() {
@@ -476,6 +477,38 @@
             } else if (currentContentType === 'compliment') {
                 button.textContent = 'Nächstes Kompliment';
             }
+        }
+
+        function switchTurn() {
+            if (isSwitchingTurn) return;  // Prevent multiple requests
+            isSwitchingTurn = true;
+
+            fetch('/switch_turn', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update UI with new turn
+                    document.querySelector('.turn-indicator').textContent = `Am Zug: ${data.current_turn}`;
+                    // Reset answer section
+                    document.querySelector('.answer-section').classList.remove('visible');
+                    document.querySelector('textarea').value = '';
+                    // Get new content
+                    getContent();
+                } else {
+                    console.error('Error switching turn:', data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            })
+            .finally(() => {
+                isSwitchingTurn = false;  // Reset flag after request completes
+            });
         }
 
         async function switchPlayer() {
