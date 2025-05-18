@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zusammenfassung - Paarspiel</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #355C7D 0%, #6C5B7B 100%);
+        }
+        .container {
+            text-align: center;
+            padding: 2rem;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(192, 108, 132, 0.1);
+            max-width: 800px;
+            width: 90%;
+            box-sizing: border-box;
+        }
+        h1 {
+            color: #355C7D;
+            margin-bottom: 1rem;
+        }
+        .date-display {
+            color: #6C5B7B;
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+        }
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .summary-table th {
+            background: #355C7D;
+            color: white;
+            padding: 1rem;
+            text-align: left;
+        }
+        .summary-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #6C5B7B;
+            color: #355C7D;
+        }
+        .summary-table tr:nth-child(even) {
+            background: #F67280;
+            color: white;
+        }
+        .back-btn {
+            background: #355C7D;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 2rem;
+        }
+        .back-btn:hover {
+            background: #6C5B7B;
+            transform: translateY(-2px);
+        }
+        .back-btn:active {
+            transform: translateY(0);
+        }
+        .heart {
+            color: #C06C84;
+            font-size: 1.5rem;
+            margin: 0 0.5rem;
+        }
+        .person-name {
+            font-weight: bold;
+            color: #C06C84;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Eure Antworten <span class="heart">❤</span></h1>
+        <div class="date-display">
+            Paarspiel am {{ answers[0][0].timestamp.strftime('%d.%m.%Y') if answers else '' }}
+        </div>
+        <table class="summary-table">
+            <thead>
+                <tr>
+                    <th>Frage</th>
+                    <th>Kategorie</th>
+                    <th>Antwort von</th>
+                    <th>Antwort</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for answer, question in answers %}
+                <tr>
+                    <td>{{ question.text }}</td>
+                    <td>{{ question.category }}</td>
+                    <td class="person-name">{{ answer.person_name }}</td>
+                    <td>{{ answer.text }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <a href="/" class="back-btn">Zurück zum Spiel</a>
+    </div>
+</body>
+</html> 
