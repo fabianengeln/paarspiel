@@ -520,6 +520,11 @@
             }
 
             const nextPlayerBtn = document.getElementById('nextPlayerBtn');
+            if (nextPlayerBtn.disabled) {
+                console.log('Button already disabled, preventing double request');
+                return;
+            }
+            
             nextPlayerBtn.disabled = true;
             
             try {
