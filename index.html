@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paarspiel</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #355C7D 0%, #6C5B7B 100%);
+        }
+        .container {
+            text-align: center;
+            padding: 2rem;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(192, 108, 132, 0.1);
+            max-width: 600px;
+            width: 90%;
+            box-sizing: border-box;
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
+        h1 {
+            color: #355C7D;
+            margin-bottom: 1rem;
+        }
+        .question-box {
+            min-height: 100px;
+            margin: 2rem 0;
+            padding: 1rem;
+            background: #F67280;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: white;
+            border: 2px solid #C06C84;
+        }
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            align-items: center;
+            margin-top: 2rem;
+        }
+        select {
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+            border: 2px solid #355C7D;
+            border-radius: 25px;
+            background: white;
+            color: #355C7D;
+            cursor: pointer;
+            outline: none;
+            width: 220px;
+        }
+        select:hover {
+            border-color: #6C5B7B;
+        }
+        button {
+            background: #355C7D;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+        }
+        button:hover {
+            background: #6C5B7B;
+            transform: translateY(-2px);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        .heart {
+            color: #C06C84;
+            font-size: 1.5rem;
+            margin: 0 0.5rem;
+        }
+        .answer-section {
+            margin: 2rem 0;
+            width: 100%;
+            box-sizing: border-box;
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            display: none;
+        }
+        .answer-section.visible {
+            visibility: visible;
+            opacity: 1;
+            display: block;
+        }
+        .navigation-buttons {
+            margin: 2rem 0;
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .navigation-buttons button {
+            min-width: 150px;
+        }
+        .next-content-btn {
+            background: #355C7D;
+        }
+        .next-content-btn:hover {
+            background: #6C5B7B;
+        }
+        .next-content-btn:disabled {
+            background: #cccccc;
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .next-content-btn:disabled:hover {
+            background: #cccccc;
+            transform: none;
+        }
+        .next-player-btn {
+            background: #C06C84;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .next-player-btn:hover {
+            background: #F67280;
+            transform: translateY(-2px);
+        }
+        .next-player-btn:disabled {
+            background: #cccccc;
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .next-player-btn:disabled:hover {
+            background: #cccccc;
+            transform: none;
+        }
+        .end-game-btn {
+            background: #000000;
+        }
+        .end-game-btn:hover {
+            background: #333333;
+        }
+        textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 1rem;
+            margin: 1rem 0;
+            border: 2px solid #355C7D;
+            border-radius: 10px;
+            font-size: 1rem;
+            resize: vertical;
+            box-sizing: border-box;
+            background: white;
+            color: #355C7D;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #6C5B7B;
+        }
+        textarea::placeholder {
+            color: #C06C84;
+        }
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+        .turn-indicator {
+            color: #355C7D;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            font-weight: bold;
+        }
+        .wheel-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 2rem auto;
+        }
+        .wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            position: relative;
+            background: conic-gradient(
+                #355C7D 0deg 120deg,
+                #6C5B7B 120deg 240deg,
+                #C06C84 240deg 360deg
+            );
+            transition: transform 3s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+            transform: rotate(0deg);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+        }
+        .wheel::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            z-index: 2;
+        }
+        .wheel-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+            text-align: center;
+            width: 120px;
+            transform-origin: center;
+            pointer-events: none;
+        }
+        .wheel-text:nth-child(1) {
+            transform: translate(-50%, -50%) rotate(60deg) translateY(-400%);
+        }
+        .wheel-text:nth-child(2) {
+            transform: translate(-50%, -50%) rotate(180deg) translateY(-400%);
+        }
+        .wheel-text:nth-child(3) {
+            transform: translate(-50%, -50%) rotate(300deg) translateY(-200%);
+        }
+        .wheel.selected {
+            filter: brightness(1.2);
+        }
+        .spin-button {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+            background: #F67280;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+        .spin-button:hover {
+            background: #C06C84;
+        }
+        .wheel-pointer {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 30px solid #F67280;
+            z-index: 3;
+        }
+        .selected-category {
+            display: none;  /* Hide the element completely */
+        }
+        .category-select {
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            display: none;
+        }
+        .category-select.visible {
+            visibility: visible;
+            opacity: 1;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Paarspiel <span class="heart">❤</span></h1>
+        <div class="turn-indicator" id="turnIndicator">
+            Spieler 1 ist an der Reihe
+        </div>
+        <div class="wheel-container">
+            <div class="wheel-pointer"></div>
+            <div class="wheel" id="wheel">
+                <div class="wheel-text">Frage</div>
+                <div class="wheel-text">Mini-Aufgabe</div>
+                <div class="wheel-text">Kompliment-Challenge</div>
+            </div>
+            <div class="spin-button" onclick="spinWheel()">Drehen</div>
+        </div>
+        <div class="question-box" id="questionBox">
+            Du bist an der Reihe - dreh am Rad!
+        </div>
+
+        <div class="navigation-buttons">
+            <button onclick="getNewContent()" class="next-content-btn" id="nextContentBtn" disabled>Nächste Aufgabe</button>
+            <button type="button" onclick="switchPlayer()" class="next-player-btn" id="nextPlayerBtn" disabled>Nächster Spieler</button>
+            <button onclick="endGame()" class="end-game-btn">Spiel beenden</button>
+        </div>
+
+        <div class="answer-section" id="answerSection">
+            <textarea id="answerInput" placeholder="Deine Antwort hier..." disabled></textarea>
+        </div>
+
+        <div class="controls">
+            <select id="categorySelect" class="category-select" onchange="updateCategory()">
+                <option value="all">Alle Kategorien</option>
+            </select>
+        </div>
+    </div>
+
+    <script>
+        // Game data
+        const questions = [
+            { id: 1, text: "Was war ein Missverständnis zwischen euch beiden, das euch zum Lachen gebracht hat?", category: "🗣 Kommunikation", used: false },
+            { id: 2, text: "In welchen Situationen fühlst du dich am besten verstanden?", category: "🗣 Kommunikation", used: false },
+            { id: 3, text: "Wie können wir in stressigen Zeiten besser kommunizieren?", category: "🗣 Kommunikation", used: false },
+            { id: 4, text: "Welches Kommunikationsmuster von mir nervt dich manchmal (sachte formuliert)?", category: "🗣 Kommunikation", used: false },
+            { id: 5, text: "Wie sprichst du am liebsten über schwierige Themen?", category: "🗣 Kommunikation", used: false },
+            { id: 6, text: "Was bedeutet achtsame Kommunikation für dich?", category: "🗣 Kommunikation", used: false },
+            { id: 7, text: "Wie können wir sicherstellen, dass wir uns auch ohne Worte verstehen?", category: "🗣 Kommunikation", used: false },
+            { id: 8, text: "Wann fühlst du dich in Gesprächen mit mir am sichersten?", category: "🗣 Kommunikation", used: false },
+            { id: 9, text: "Welche nonverbalen Signale von mir verstehst du am leichtesten?", category: "🗣 Kommunikation", used: false },
+            { id: 10, text: "Wie gehen wir am besten mit Meinungsverschiedenheiten um?", category: "🗣 Kommunikation", used: false },
+            { id: 11, text: "Was können wir tun, um unsere Kommunikation im Alltag bewusster zu gestalten?", category: "🗣 Kommunikation", used: false },
+            { id: 12, text: "Gibt es etwas, das du dir schon immer mal trauen wolltest, mir zu sagen?", category: "🗣 Kommunikation", used: false },
+            { id: 13, text: "Was ist deine Lieblingsart, Zuneigung zu zeigen oder zu empfangen?", category: "💞 Zärtlichkeit & Nähe", used: false },
+            { id: 14, text: "Wann hast du dich mir zuletzt besonders nah gefühlt?", category: "💞 Zärtlichkeit & Nähe", used: false },
+            { id: 15, text: "Wie können wir mehr zärtliche Momente in unseren Alltag bringen?", category: "💞 Zärtlichkeit & Nähe", used: false },
+            { id: 16, text: "Was ist für dich ein perfekter kuscheliger Abend?", category: "💞 Zärtlichkeit & Nähe", used: false },
+            { id: 17, text: "Gibt es eine Geste der Zärtlichkeit, die du besonders magst?", category: "💞 Zärtlichkeit & Nähe", used: false },
+            { id: 18, text: "Wann hast du dich zuletzt von mir besonders begehrt gefühlt?", category: "💞 Zärtlichkeit & Nähe", used: false },
+            { id: 19, text: "Wie wichtig ist dir körperliche Nähe im Vergleich zu emotionaler Nähe?", category: "💞 Zärtlichkeit & Nähe", used: false },
+            { id: 20, text: "Welcher Ort ist für dich der Inbegriff von Romantik?", category: "💞 Zärtlichkeit & Nähe", used: false },
+            { id: 21, text: "Was ist das Zärtlichste, das jemand je für dich getan hat?", category: "💞 Zärtlichkeit & Nähe", used: false },
+            { id: 22, text: "Wie können wir unsere Intimität vertiefen?", category: "💞 Zärtlichkeit & Nähe", used: false },
+            { id: 23, text: "Beschreibe einen Moment, in dem du dich mir ohne Worte nahe gefühlt hast.", category: "💞 Zärtlichkeit & Nähe", used: false },
+            { id: 24, text: "Was bedeutet Sicherheit und Geborgenheit für dich in unserer Beziehung?", category: "💞 Zärtlichkeit & Nähe", used: false },
+            { id: 25, text: "Wie kann ich dich an einem stressigen Tag am besten unterstützen?", category: "🤯 Alltagsstress & Bedürfnisse", used: false },
+            { id: 26, text: "Welches Bedürfnis von dir wird im Moment zu wenig erfüllt?", category: "🤯 Alltagsstress & Bedürfnisse", used: false },
+            { id: 27, text: "Was hilft dir am besten, um nach einem anstrengenden Tag abzuschalten?", category: "🤯 Alltagsstress & Bedürfnisse", used: false },
+            { id: 28, text: "Gibt es etwas, das ich tun oder lassen kann, um deinen Stress zu reduzieren?", category: "🤯 Alltagsstress & Bedürfnisse", used: false },
+            { id: 29, text: "Wie äußert sich Stress bei dir und wie erkenne ich das am besten?", category: "🤯 Alltagsstress & Bedürfnisse", used: false },
+            { id: 30, text: "Was brauchst du, um dich im Alltag mehr gesehen und wertgeschätzt zu fühlen?", category: "🤯 Alltagsstress & Bedürfnisse", used: false },
+            { id: 31, text: "Wie wichtig ist dir Zeit für dich alleine und wie können wir das ermöglichen?", category: "🤯 Alltagsstress & Bedürfnisse", used: false },
+            { id: 32, text: "Welche kleinen Dinge im Alltag geben dir Energie?", category: "🤯 Alltagsstress & Bedürfnisse", used: false },
+            { id: 33, text: "Gibt es eine Routine, die dir im Alltag fehlt und die wir einführen könnten?", category: "🤯 Alltagsstress & Bedürfnisse", used: false },
+            { id: 34, text: "Wie gehst du mit Überforderung um und wie kann ich dir dabei helfen?", category: "🤯 Alltagsstress & Bedürfnisse", used: false },
+            { id: 35, text: "Was bedeutet für dich ein unterstützendes Umfeld?", category: "🤯 Alltagsstress & Bedürfnisse", used: false },
+            { id: 36, text: "Welche Bedürfnisse sind für dich momentan am wichtigsten?", category: "🤯 Alltagsstress & Bedürfnisse", used: false },
+            { id: 37, text: "Was ist ein gemeinsamer Traum, den wir uns in den nächsten Jahren erfüllen wollen?", category: "🧭 Gemeinsame Visionen", used: false },
+            { id: 38, text: "Wie stellen wir uns unser gemeinsames Leben in 5 Jahren vor?", category: "🧭 Gemeinsame Visionen", used: false },
+            { id: 39, text: "Welches Abenteuer möchtest du unbedingt noch mit mir erleben?", category: "🧭 Gemeinsame Visionen", used: false },
+            { id: 40, text: "Was ist uns beiden in Bezug auf unsere gemeinsame Zukunft am wichtigsten?", category: "🧭 Gemeinsame Visionen", used: false },
+            { id: 41, text: "Gibt es ein Projekt, das wir unbedingt gemeinsam angehen sollten?", category: "🧭 Gemeinsame Visionen", used: false },
+            { id: 42, text: "Wie können wir unsere individuellen Ziele und unsere gemeinsamen Visionen in Einklang bringen?", category: "🧭 Gemeinsame Visionen", used: false },
+            { id: 43, text: "Welchen Beitrag möchtest du für die Welt leisten und wie können wir das gemeinsam tun?", category: "🧭 Gemeinsame Visionen", used: false },
+            { id: 44, text: "Was ist der nächste Meilenstein, den wir als Paar erreichen wollen?", category: "🧭 Gemeinsame Visionen", used: false },
+            { id: 45, text: "Wie können wir unsere gemeinsame Zeit noch erfüllender gestalten?", category: "🧭 Gemeinsame Visionen", used: false },
+            { id: 46, text: "Was ist für dich das Wichtigste, das wir als Paar erschaffen können?", category: "🧭 Gemeinsame Visionen", used: false },
+            { id: 47, text: "Welche Werte sind uns in unserer gemeinsamen Zukunft besonders wichtig?", category: "🧭 Gemeinsame Visionen", used: false },
+            { id: 48, text: "Wie können wir sicherstellen, dass wir auf dem Weg zu unseren Zielen Spaß haben?", category: "🧭 Gemeinsame Visionen", used: false },
+            { id: 49, text: "Was war der lustigste Moment, den wir zusammen erlebt haben?", category: "🎭 Humor & Leichtigkeit", used: false },
+            { id: 50, text: "Welche Art von Humor teilen wir am meisten?", category: "🎭 Humor & Leichtigkeit", used: false },
+            { id: 51, text: "Wie können wir mehr Leichtigkeit und Spaß in unseren Alltag bringen?", category: "🎭 Humor & Leichtigkeit", used: false },
+            { id: 52, text: "Gibt es eine alberne Angewohnheit von mir, die du insgeheim magst?", category: "🎭 Humor & Leichtigkeit", used: false },
+            { id: 53, text: "Was bringt dich sofort zum Lachen, egal wie deine Stimmung ist?", category: "🎭 Humor & Leichtigkeit", used: false },
+            { id: 54, text: "Welches Spiel oder welche Aktivität macht uns beiden am meisten Spaß?", category: "🎭 Humor & Leichtigkeit", used: false },
+            { id: 55, text: "Wie können wir auch in ernsten Situationen unseren Humor bewahren?", category: "🎭 Humor & Leichtigkeit", used: false },
+            { id: 56, text: "Was ist die schönste Erinnerung an einen unbeschwerten Moment zusammen?", category: "🎭 Humor & Leichtigkeit", used: false },
+            { id: 57, text: "Gibt es einen Insider-Witz, den nur wir verstehen?", category: "🎭 Humor & Leichtigkeit", used: false },
+            { id: 58, text: "Wie können wir mehr spontane, lustige Momente in unseren Alltag integrieren?", category: "🎭 Humor & Leichtigkeit", used: false },
+            { id: 59, text: "Was bedeutet für dich Leichtigkeit in einer Beziehung?", category: "🎭 Humor & Leichtigkeit", used: false },
+            { id: 60, text: "Welche Kindheitserinnerung bringt dich immer zum Lachen?", category: "🎭 Humor & Leichtigkeit", used: false }
+        ];
+
+        const miniTasks = [
+            { id: 1, text: "Plant gemeinsam einen Traumurlaub – ganz egal, wann ihr ihn macht.", category: "🧭 Gemeinsame Visionen", used: false },
+            { id: 2, text: "Legt euch für 5 Minuten in den Arm, ohne zu sprechen.", category: "💞 Zärtlichkeit & Nähe", used: false },
+            { id: 3, text: "Erzählt euch gegenseitig, was euer schönster gemeinsamer Moment bisher war.", category: "💞 Zärtlichkeit & Nähe", used: false },
+            { id: 4, text: "Kocht heute Abend gemeinsam ein neues Gericht.", category: "🎭 Humor & Leichtigkeit", used: false },
+            { id: 5, text: "Geht gemeinsam eine kleine Runde spazieren – nur ihr zwei.", category: "💞 Zärtlichkeit & Nähe", used: false },
+            { id: 6, text: "Schaut euch alte Fotos an und sprecht über die Erinnerungen.", category: "💞 Zärtlichkeit & Nähe", used: false },
+            { id: 7, text: "Plant ein gemeinsames Wochenende nur für euch (auch wenn es in der Zukunft liegt).", category: "🧭 Gemeinsame Visionen", used: false },
+            { id: 8, text: "Legt die Hand auf das Herz des anderen und bleibt so für 1 Minute.", category: "💞 Zärtlichkeit & Nähe", used: false },
+            { id: 9, text: "Schreibt euch gegenseitig einen kleinen Liebesbrief.", category: "🗣 Kommunikation", used: false },
+            { id: 10, text: "Tanzt gemeinsam ein Lied im Wohnzimmer – ganz egal welches.", category: "🎭 Humor & Leichtigkeit", used: false },
+            { id: 11, text: "Massiert euch gegenseitig 10 Minuten – ohne Ablenkung.", category: "💞 Zärtlichkeit & Nähe", used: false },
+            { id: 12, text: "Schreibt zusammen eine Liste: Was wollen wir als Paar noch erleben?", category: "🧭 Gemeinsame Visionen", used: false },
+            { id: 13, text: "Stellt einen Wecker auf 10 Minuten und erzählt euch, was euch heute bewegt hat.", category: "🗣 Kommunikation", used: false },
+            { id: 14, text: "Nehmt euch vor, heute Abend gemeinsam ohne Handy ins Bett zu gehen.", category: "🤯 Alltagsstress & Bedürfnisse", used: false },
+            { id: 15, text: "Schaut euch gemeinsam den Sonnenuntergang an – bewusst und in Stille.", category: "💞 Zärtlichkeit & Nähe", used: false },
+            { id: 16, text: "Fragt euch gegenseitig: Was brauche ich heute von dir?", category: "🤯 Alltagsstress & Bedürfnisse", used: false },
+            { id: 17, text: "Lest euch gegenseitig etwas vor – aus einem Buch oder einem Artikel.", category: "🗣 Kommunikation", used: false },
+            { id: 18, text: "Hört gemeinsam ein Lied, das euch verbindet – und sprecht über die Erinnerungen dazu.", category: "💞 Zärtlichkeit & Nähe", used: false },
+            { id: 19, text: "Stellt euch vor: Ihr lernt euch heute zum ersten Mal kennen. Was würdet ihr sagen?", category: "🎭 Humor & Leichtigkeit", used: false },
+            { id: 20, text: "Erstellt zusammen einen Zukunftsplan: Was wollt ihr in den nächsten 5 Jahren erreichen?", category: "🧭 Gemeinsame Visionen", used: false }
+        ];
+
+        const compliments = [
+            { id: 1, text: "Sag deinem Partner heute 3 Dinge, die du an ihm/ihr bewunderst – und warum.", category: "💞 Zärtlichkeit & Nähe", used: false },
+            { id: 2, text: "Mach deinem Partner ein Kompliment für etwas, das er/sie oft tut, aber selten dafür gelobt wird.", category: "🤯 Alltagsstress & Bedürfnisse", used: false },
+            { id: 3, text: "Was war das schönste Kompliment, das du je von deinem Partner bekommen hast? Sag es ihm/ihr und wie es gewirkt hat.", category: "💞 Zärtlichkeit & Nähe", used: false },
+            { id: 4, text: "Schreib ein Kompliment auf einen Zettel und versteck es irgendwo, wo dein Partner es heute findet.", category: "💞 Zärtlichkeit & Nähe", used: false },
+            { id: 5, text: "Sag deinem Partner, was er/sie richtig gut als Mama/Papa macht.", category: "🤯 Alltagsstress & Bedürfnisse", used: false },
+            { id: 6, text: "Mach ein Kompliment über das Aussehen – aber nicht das Offensichtliche. Etwas Unerwartetes.", category: "💞 Zärtlichkeit & Nähe", used: false },
+            { id: 7, text: "Schick deinem Partner eine Sprachnachricht mit 1 Minute purer Wertschätzung.", category: "🗣 Kommunikation", used: false },
+            { id: 8, text: "Mach deinem Partner ein Kompliment, das er/sie in letzter Zeit dringend gebraucht hätte.", category: "🤯 Alltagsstress & Bedürfnisse", used: false },
+            { id: 9, text: "Mach deinem Partner ein Kompliment im Stil eines Werbespots.", category: "🎭 Humor & Leichtigkeit", used: false },
+            { id: 10, text: "Erfinde einen Preis und verleihe ihn heute: 'Und der Preis für den/die beste(n) Zuhörer/in geht an …'", category: "🎭 Humor & Leichtigkeit", used: false },
+            { id: 11, text: "Sag deinem Partner ein Kompliment – aber beginne mit: 'Ich hätte nie gedacht, dass du so gut bist in …'", category: "🎭 Humor & Leichtigkeit", used: false },
+            { id: 12, text: "Mach ein Kompliment, das völlig übertrieben ist – aber mit einem Augenzwinkern.", category: "🎭 Humor & Leichtigkeit", used: false },
+            { id: 13, text: "Sag deinem Partner, welche Berührung du an ihm/ihr am meisten liebst.", category: "💞 Zärtlichkeit & Nähe", used: false },
+            { id: 14, text: "Flüstere deinem Partner heute ein Kompliment ins Ohr – mitten im Alltag.", category: "💞 Zärtlichkeit & Nähe", used: false },
+            { id: 15, text: "Sag deinem Partner, was du an seiner/ihrer Art zu lieben besonders findest.", category: "💞 Zärtlichkeit & Nähe", used: false },
+            { id: 16, text: "Sag ihm/ihr, woran du merkst, dass er/sie dich liebt – ohne Worte.", category: "💞 Zärtlichkeit & Nähe", used: false },
+            { id: 17, text: "Was würdest du an deinem Partner vermissen, wenn er/sie plötzlich weg wäre? Sag es ihm/ihr.", category: "💞 Zärtlichkeit & Nähe", used: false },
+            { id: 18, text: "Welches Kompliment hast du lange nicht mehr ausgesprochen? Hol es heute nach.", category: "🗣 Kommunikation", used: false },
+            { id: 19, text: "Wofür bist du deinem Partner heute konkret dankbar? Sag es.", category: "🤯 Alltagsstress & Bedürfnisse", used: false },
+            { id: 20, text: "Sag deinem Partner: 'Du machst mein Leben besser, weil …'", category: "💞 Zärtlichkeit & Nähe", used: false }
+        ];
+
+        // Game state
+        let currentPlayer = 1;
+        let currentCategory = 'all';
+        let currentContentId = null;
+        let currentContentType = null;
+        let isSpinning = false;
+        let hasSpun = false;
+        let answers = [];
+        let player1 = localStorage.getItem('player1') || 'Spieler 1';
+        let player2 = localStorage.getItem('player2') || 'Spieler 2';
+
+        // Initialize game
+        function initializeGame() {
+            // Load saved state from localStorage
+            const savedState = localStorage.getItem('gameState');
+            if (savedState) {
+                const state = JSON.parse(savedState);
+                currentPlayer = state.currentPlayer;
+                answers = state.answers || [];
+                updateTurnIndicator();
+            }
+
+            // Initialize categories
+            const categories = [...new Set([
+                ...questions.map(q => q.category),
+                ...miniTasks.map(t => t.category),
+                ...compliments.map(c => c.category)
+            ])];
+            
+            const select = document.getElementById('categorySelect');
+            categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = category;
+                select.appendChild(option);
+            });
+
+            // Reset spin state
+            hasSpun = false;
+            updateSpinButton();
+        }
+
+        // Save game state
+        function saveGameState() {
+            const state = {
+                currentPlayer,
+                answers
+            };
+            localStorage.setItem('gameState', JSON.stringify(state));
+        }
+
+        // Update turn indicator
+        function updateTurnIndicator() {
+            const playerName = currentPlayer === 1 ? player1 : player2;
+            document.getElementById('turnIndicator').textContent = `${playerName} ist an der Reihe`;
+        }
+
+        // Get random item that hasn't been used
+        function getRandomItem(items) {
+            const availableItems = items.filter(item => !item.used);
+            
+            if (availableItems.length === 0) {
+                // Reset all items if none are available
+                items.forEach(item => item.used = false);
+                return items[Math.floor(Math.random() * items.length)];
+            }
+            
+            const selectedItem = availableItems[Math.floor(Math.random() * availableItems.length)];
+            selectedItem.used = true;
+            return selectedItem;
+        }
+
+        // Get content based on type and category
+        function getContent(type, category) {
+            let items;
+            switch(type) {
+                case 'question':
+                    items = questions;
+                    break;
+                case 'mini_task':
+                    items = miniTasks;
+                    break;
+                case 'compliment':
+                    items = compliments;
+                    break;
+            }
+
+            if (category !== 'all') {
+                items = items.filter(item => item.category === category);
+            }
+
+            const selectedItem = getRandomItem(items);
+            return {
+                id: selectedItem.id,
+                text: selectedItem.text,
+                type: type,
+                category: selectedItem.category
+            };
+        }
+
+        // Update category
+        function updateCategory() {
+            currentCategory = document.getElementById('categorySelect').value;
+            getNewContent();
+        }
+
+        // Get new content
+        function getNewContent() {
+            if (!hasSpun) return;
+
+            const result = getContent(currentContentType, currentCategory);
+            const questionBox = document.getElementById('questionBox');
+            const currentPlayerName = currentPlayer === 1 ? player1 : player2;
+            questionBox.textContent = `${currentPlayerName}: ${result.text}`;
+            
+            currentContentId = result.id;
+            currentContentType = result.type;
+            
+            // Show/hide elements based on content type
+            const categorySelect = document.getElementById('categorySelect');
+            const answerSection = document.getElementById('answerSection');
+            const answerInput = document.getElementById('answerInput');
+            
+            // Always show category select for all content types
+            categorySelect.classList.add('visible');
+            
+            // Only show answer section for questions
+            if (result.type === 'question') {
+                answerSection.classList.add('visible');
+                answerInput.disabled = false;
+            } else {
+                answerSection.classList.remove('visible');
+                answerInput.disabled = true;
+                answerInput.value = '';
+            }
+
+            updateNextContentButton();
+        }
+
+        // Switch player
+        function switchPlayer() {
+            if (!hasSpun) return;
+
+            const nextPlayerBtn = document.getElementById('nextPlayerBtn');
+            if (nextPlayerBtn.disabled) return;
+            
+            nextPlayerBtn.disabled = true;
+            
+            // Save current answer if it's a question
+            if (currentContentId && currentContentType === 'question') {
+                const answerText = document.getElementById('answerInput').value.trim();
+                if (answerText) {
+                    answers.push({
+                        player: currentPlayer,
+                        questionId: currentContentId,
+                        answer: answerText
+                    });
+                    saveGameState();
+                }
+            }
+
+            // Switch to next player
+            currentPlayer = currentPlayer === 1 ? 2 : 1;
+            updateTurnIndicator();
+            saveGameState();
+
+            // Reset game state
+            resetGameState();
+        }
+
+        // Reset game state
+        function resetGameState() {
+            hasSpun = false;
+            currentContentId = null;
+            currentContentType = null;
+            
+            const currentPlayerName = currentPlayer === 1 ? player1 : player2;
+            document.getElementById('questionBox').textContent = `${currentPlayerName} ist an der Reihe - dreh am Rad!`;
+            document.getElementById('answerInput').value = '';
+            document.getElementById('answerSection').classList.remove('visible');
+            document.getElementById('categorySelect').classList.remove('visible');
+            
+            const wheel = document.getElementById('wheel');
+            wheel.style.transition = 'none';
+            wheel.style.transform = 'rotate(0deg)';
+            setTimeout(() => {
+                wheel.style.transition = 'transform 3s cubic-bezier(0.17, 0.67, 0.12, 0.99)';
+            }, 50);
+            
+            updateSpinButton();
+            updateNextContentButton();
+        }
+
+        // End game
+        function endGame() {
+            // Save final answer if it's a question
+            if (currentContentId && currentContentType === 'question') {
+                const answerText = document.getElementById('answerInput').value.trim();
+                if (answerText) {
+                    answers.push({
+                        player: currentPlayer,
+                        questionId: currentContentId,
+                        answer: answerText
+                    });
+                    saveGameState();
+                }
+            }
+
+            // Show summary
+            const summary = answers.map(answer => {
+                const question = questions.find(q => q.id === answer.questionId);
+                return `Spieler ${answer.player}: ${question.text}\nAntwort: ${answer.answer}\n\n`;
+            }).join('');
+
+            alert('Spiel Zusammenfassung:\n\n' + summary);
+            
+            // Reset game
+            localStorage.removeItem('gameState');
+            window.location.reload();
+        }
+
+        // Initialize game when page loads
+        window.onload = initializeGame;
+
+        function updateSpinButton() {
+            const spinButton = document.querySelector('.spin-button');
+            const nextPlayerBtn = document.getElementById('nextPlayerBtn');
+            const nextContentBtn = document.getElementById('nextContentBtn');
+            
+            if (hasSpun) {
+                spinButton.style.opacity = '0.5';
+                spinButton.style.cursor = 'not-allowed';
+                nextPlayerBtn.disabled = false;
+                nextContentBtn.disabled = false;
+            } else {
+                spinButton.style.opacity = '1';
+                spinButton.style.cursor = 'pointer';
+                spinButton.textContent = 'Drehen';
+                nextPlayerBtn.disabled = true;
+                nextContentBtn.disabled = true;
+            }
+        }
+
+        function updateNextContentButton() {
+            const button = document.getElementById('nextContentBtn');
+            if (currentContentType === 'question') {
+                button.textContent = 'Nächste Frage';
+            } else if (currentContentType === 'mini_task') {
+                button.textContent = 'Nächste Mini-Aufgabe';
+            } else if (currentContentType === 'compliment') {
+                button.textContent = 'Nächstes Kompliment';
+            }
+        }
+
+        function getSelectedSection(degrees) {
+            degrees = degrees % 360;
+            if (degrees < 0) degrees += 360;
+            let adjustedDegrees = (degrees + 60) % 360;
+            
+            if (adjustedDegrees >= 0 && adjustedDegrees < 120) return 0;
+            if (adjustedDegrees >= 120 && adjustedDegrees < 240) return 1;
+            if (adjustedDegrees >= 240 && adjustedDegrees < 360) return 2;
+            
+            return 0;
+        }
+
+        function getTargetDegrees(sectionIndex) {
+            return -(sectionIndex * 120 + 60);
+        }
+
+        function spinWheel() {
+            if (isSpinning || hasSpun) return;
+            isSpinning = true;
+
+            const wheel = document.getElementById('wheel');
+            document.querySelectorAll('.wheel-text').forEach(section => {
+                section.classList.remove('selected');
+            });
+
+            const selectedSection = Math.floor(Math.random() * 3);
+            const finalDegrees = getTargetDegrees(selectedSection);
+            const randomBigSpin = 360 * (5 + Math.floor(Math.random() * 5));
+            const totalDegreesToRotate = randomBigSpin + finalDegrees;
+
+            wheel.style.transition = 'transform 3s cubic-bezier(0.17, 0.67, 0.12, 0.99)';
+            wheel.style.transform = `rotate(${totalDegreesToRotate}deg)`;
+
+            setTimeout(() => {
+                const selectedSectionDiv = wheel.querySelector(`.wheel-text:nth-child(${selectedSection + 1})`);
+                if (selectedSectionDiv) {
+                    selectedSectionDiv.classList.add('selected');
+                }
+
+                isSpinning = false;
+                hasSpun = true;
+                updateSpinButton();
+
+                const contentTypes = ['question', 'mini_task', 'compliment'];
+                currentContentType = contentTypes[selectedSection];
+                updateNextContentButton();
+
+                getNewContent();
+            }, 3000);
+        }
+    </script>
+</body>
+</html> 
